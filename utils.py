@@ -5,3 +5,4 @@ def GetBotToken():
         data = yaml.safe_load(file)
 
     return data["BotToken"]
+

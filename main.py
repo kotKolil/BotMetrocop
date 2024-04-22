@@ -1,22 +1,25 @@
-import asyncio
+import asyncio 
 import logging
-
-from aiogram import Bot, Dispatcher
-from aiogram.enums.parse_mode import ParseMode
-from aiogram.fsm.storage.memory import MemoryStorage
-
+from aiogram import Bot, Dispatcher, types, F
+from aiogram.filters.command import Command
 import utils
-from handlers import router
+from aiogram.enums import ParseMode
+import os
+from aiogram.enums.content_type import ContentType
+from aiogram.utils.keyboard import InlineKeyboardBuilder
 
+from random import *
+from handlers import *
+import json
+
+#подрубаем логгер чтобы руки не дрожали и инфа мутилась , лавэха крутилась 
+logging.basicConfig(level = logging.INFO)
+
+#создаём самого болта, через token И GetBotToken достаём из yaml сам токен
+bot = Bot(token = utils.GetBotToken())
 
 async def main():
-    bot = Bot(token=utils.GetBotToken(), parse_mode=ParseMode.HTML)
-    dp = Dispatcher(storage=MemoryStorage())
-    dp.include_router(router)
-    await bot.delete_webhook(drop_pending_updates=True)
-    await dp.start_polling(bot, allowed_updates=dp.resolve_used_update_types())
-
+    await dp.start_polling(bot)
 
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO)
     asyncio.run(main())
