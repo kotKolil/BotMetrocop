@@ -51,7 +51,7 @@ async def BanHammer(msg:types.Message):
     user_id = msg.from_user.id
     HammerTester = msg.text.split(" ")[1]
 
-    await msg.bot.kick_chat_member(chat_id, user_id)
+    await msg.chat.ban (chat_id, user_id)
     await bot.send_message(chat_id, f"{HammerTester} отведал Молотка бана")
 
 @dp.message(lambda message: "бля" in message.text.lower() or "пизд" in message.text.lower() or "ху" in message.text.lower())
@@ -113,7 +113,18 @@ async def choose_your_dinner(msg:types.Message):
 #а в этом хэнделере мы инфу о чате намучиваем
 @dp.message(Command("Info"))
 async def InfoHandler(msg:types.Message):
-    pass
+    ChatId = msg.chat.id
+    NumOfMembers = await bot.get_chat_members_count(ChatId)
+    ListOfModers = "<ol>"
+    DataOfMember = await bot.get_chat_administrators(ChatId)
+    for i in DataOfMember:
+        ListOfModers += f"<li>{i}</li>"
+
+    ListOfModers += "</ol>"
+    ChatTitle = msg.chat.title
+    ChatAbout = msg.chat.bio
+    ChatAbout2 = msg.chat.description
+
 
                     
             
