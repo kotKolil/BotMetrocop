@@ -13,9 +13,19 @@ from aiogram.methods.ban_chat_member import BanChatMember
 from aiogram import F
 from aiogram.methods.get_chat_administrators import GetChatAdministrators
 import json
+from aiogram import Bot, Dispatcher, types
+from aiogram.types.message import ContentType
 from time import sleep
 #как в любом уважающем паттерне  архитектуры как PIDOR добавляем Диспетчера
 dp = Dispatcher()
+
+ChatsWithBunt = {}
+
+#добавляем донаты, чтобы лавэха мутилась
+COOCKIE = types.LabeledPrice(label='Печенька овсяная', amount=3400)
+COFFE  = types.LabeledPrice(label = "Кофе зернёное", amount = 10**4)
+
+PaymentToken = GetBotToken("PaymentToken")
 
 chats = []
 
@@ -39,7 +49,7 @@ async def CheckAdminModer(ChatId, UserId):
 #заметь, мы добавляем аннотацию что message - это не какой-то чепуч, а объект классса types.Message
 async def BotsStart(msg: types.Message):
     global chats
-    await msg.reply(f"День добрый. Я - Метрокоп. Добавьте меня в группу для того чтобы я следил за участниками группы. {msg.chat.id}",
+    await msg.reply(f"День добрый. Я - Метрокоп. Добавьте меня в группу для того чтобы я следил за участниками группы",
                      parse_mode=ParseMode.HTML)
 
     
@@ -126,6 +136,76 @@ async def InfoHandler(msg:types.Message):
     ChatAbout2 = msg.chat.description
 
 
-                    
-            
+
+#вы не подпишите мою петицию? 
+#                           Чувак
+@dp.message(Command("BanPetiion"))
+async def PetionHandler(msg:types.Message):
+    UserId = msg.text.split(" ")[1]
+    if not UserId in ChatsWithBunt:
+        ChatsWithBunt[UserId] = 1
+        print(ChatsWithBunt)
+    else:
+        ChatsWithBunt[UserId] += 1
+        if ChatsWithBunt[UserId]  > (await bot.get_chat_members_count(msg.chat.id) ) // 2:
+            await msg.chat.ban(msg.chat.id, UserId)
+            await bot.reply(msg.chat.id, "После подпсания петиции забанили" + F"@{UserId}")
+
+
+@dp.message(Command("BuyCookie"))
+async def buy(message: types.Message):
+
+    if PaymentToken.split(':')[1] == 'TEST':
+        await bot.answer(message.chat.id, "Тестовый платеж!!!")
+
+    await bot.send_invoice(message.chat.id,
+                           title="Подписка на бота",
+                           description="Активация подписки на бота на 1 месяц",
+                           provider_token=PaymentToken,
+                           currency="rub",
+                           photo_url="https://i.ytimg.com/vi/9C-lnHnkTEI/sddefault.jpg",
+                           photo_width=416,
+                           photo_height=234,
+                           photo_size=416,
+                           is_flexible=False,
+                           prices=[COOCKIE],
+                           start_parameter="one-month-subscription",
+                           payload="test-invoice-payload")
     
+
+@dp.message(Command("BuyCoffee"))
+async def buy(message: types.Message):
+
+    if PaymentToken.split(':')[1] == 'TEST':
+        await bot.answer(message.chat.id, "Тестовый платеж!!!")
+
+    await bot.send_invoice(message.chat.id,
+                           title="Подписка на бота",
+                           description="Активация подписки на бота на 1 месяц",
+                           provider_token=PaymentToken,
+                           currency="rub",
+                           photo_url="https://i.ytimg.com/vi/9C-lnHnkTEI/sddefault.jpg",
+                           photo_width=416,
+                           photo_height=234,
+                           photo_size=416,
+                           is_flexible=False,
+                           prices=[COFFE],
+                           start_parameter="one-month-subscription",
+                           payload="test-invoice-payload")
+    
+
+# pre checkout  (must be answered in 10 seconds)
+@dp.pre_checkout_query_handler(lambda query: True)
+async def pre_checkout_query(pre_checkout_q: types.PreCheckoutQuery):
+    await bot.answer_pre_checkout_query(pre_checkout_q.id, ok=True)
+
+
+# successful payment
+@dp.message_handler(content_types=ContentType.SUCCESSFUL_PAYMENT)
+async def successful_payment(message: types.Message):
+    payment_info = message.successful_payment.to_python()
+    for k, v in payment_info.items():
+        print(f"{k} = {v}")
+
+    await bot.send_message(message.chat.id,
+                           f"Платеж на сумму {message.successful_payment.total_amount // 100} {message.successful_payment.currency} прошел успешно!!!")

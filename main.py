@@ -16,7 +16,7 @@ import json
 logging.basicConfig(level = logging.INFO)
 
 #создаём самого болта, через token И GetBotToken достаём из yaml сам токен
-bot = Bot(token = utils.GetBotToken())
+bot = Bot(token = utils.GetBotToken("BotToken"))
 
 async def main():
     await dp.start_polling(bot)
